@@ -8,6 +8,8 @@ def job(user: str, pwd: str, to_enroll: [int], to_waitlist: [int], order: [str])
     """Opens up Chrome Driver, waits 57 seconds and automatically enters the user in their classes or waitlists"""
     driver = webdriver.Chrome()
     time.sleep(57)
+    part_missing_message = "You must successfully enroll in all co-classes of a course during the same WebReg session " \
+                           "or you will be dropped from the entire course upon logout."
     driver.get("https://www.reg.uci.edu/registrar/soc/webreg.html")
     assert "UCI University Registrar - Course Enrollment: WebReg" in driver.title
     elem = driver.find_element_by_link_text("Access WebReg")
@@ -30,7 +32,9 @@ def job(user: str, pwd: str, to_enroll: [int], to_waitlist: [int], order: [str])
                     elem.send_keys(to_enroll[x])
                     elem.send_keys(Keys.RETURN)
                     try:
-                        driver.find_element_by_class_name("WebRegErrorMsg")
+                        message = driver.find_element_by_class_name("WebRegErrorMsg")
+                        if part_missing_message in message.text:
+                            break
                     except NoSuchElementException:
                         print("Class successfully added.")
                         break
@@ -138,7 +142,7 @@ def main():
      the exact desired time."""
     while True:
         choice = input("Type 'manual' to enter information manually or 'auto' to read information from a file: ")
-        if choice != 'manual' or choice != 'auto':
+        if choice != 'manual' and choice != 'auto':
             print("Invalid input.")
         else:
             break
